@@ -60,12 +60,12 @@ public class UserMealsUtil {
                 }
             }
 
-            if(amountOfCalories > 2000){
-                for(int i = 0; i < mealInNeededTime.size(); i++){
-                    if(mealInNeededTime.get(i).getDateTime().getDayOfMonth() == dayTime.getDayOfMonth()
-                            && mealInNeededTime.get(i).getDateTime().getMonth() == dayTime.getMonth()
-                            && mealInNeededTime.get(i).getDateTime().getYear() == dayTime.getYear()){
-                        mealWithExcesses.add(new UserMealWithExcess(mealInNeededTime.get(i).getDateTime(), mealInNeededTime.get(i).getDescription(), mealInNeededTime.get(i).getCalories(), true));
+            if(amountOfCalories >  caloriesPerDay){
+                for (UserMeal userMeal : mealInNeededTime) {
+                    if (userMeal.getDateTime().getDayOfMonth() == dayTime.getDayOfMonth()
+                            && userMeal.getDateTime().getMonth() == dayTime.getMonth()
+                            && userMeal.getDateTime().getYear() == dayTime.getYear()) {
+                        mealWithExcesses.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), true));
                     }
                 }
             }
@@ -78,24 +78,21 @@ public class UserMealsUtil {
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO Implement by streams
 
-        List<UserMealWithExcess> mealWithExcesses = null;
+        List<UserMealWithExcess> mealWithExcesses;
         AtomicInteger calories = new AtomicInteger();
 
         Map<Integer, List<UserMeal>> groupedByDayMap =
                 meals.stream().collect(Collectors.groupingBy((UserMeal userMeal) -> userMeal.getDateTime().getDayOfMonth()));
 
-        mealWithExcesses = groupedByDayMap.values().stream().map(x -> {
+        mealWithExcesses = groupedByDayMap.values().stream().peek(x -> {
             for(UserMeal m : x){
                 calories.addAndGet(m.getCalories());
             }
-            if(calories.intValue() > 2000){
+            if(calories.intValue() > caloriesPerDay){
                 x.removeIf(meal -> !TimeUtil.isBetweenHalfOpen(LocalTime.from(meal.getDateTime()), startTime, endTime));
             } else x.clear();
-            return x;
         }).flatMap(Collection::stream).collect(Collectors.toList()).
-                stream().map(x -> {
-                    return new UserMealWithExcess(x.getDateTime(), x.getDescription(), x.getCalories(), true);
-        }).collect(Collectors.toList());
+                stream().map(x -> new UserMealWithExcess(x.getDateTime(), x.getDescription(), x.getCalories(), true)).collect(Collectors.toList());
 
         return mealWithExcesses;
     }
