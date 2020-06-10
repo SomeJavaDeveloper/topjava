@@ -9,9 +9,11 @@ public interface MealService {
 
     public Collection<Meal> getAllMeals();
 
+    public Meal getMealById(Integer id);
+
     public void addMeal(LocalDateTime time, String description, int calories);
 
-    public void updateMeal(Meal meal);
+    public void updateMeal(Integer id, LocalDateTime time, String description, int calories);
 
     public void deleteMeal(Integer mealId);
 }
